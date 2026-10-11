@@ -82,7 +82,7 @@ CACTO_PEQUENO = (
     "000110000","000110000","000110000","010110000",
     "010110100","011110100","001111100","000110000",
     "000110000","000110000","000110000","000110000",
-    "000110000","001111000"
+    "000110000","001111000",
 )
 
 CACTO_GRANDE = (
@@ -117,7 +117,7 @@ def sprite_pixels(padrao, escala, cor):
             for coluna, digito in enumerate(texto):
                 if digito == "1":
                     pygame.draw.rect(superficie, cor,(
-                        coluna * escala, linha * escala, escala,escala
+                        coluna * escala, linha * escala,escala,escala
                     ))
         _cache_sprites[chave] = superficie
     return _cache_sprites[chave]
@@ -139,7 +139,7 @@ def carregar_recorde():
     try:
         return max(0, int(json.loads(ARQUIVO_RECORDE.read_text(
             encoding = "utf-8")).get("recorde",0)))
-    except OSError, ValueError, TypeError,AttributeError:
+    except {OSError, ValueError,TypeError,AttributeError}:
         return 0
 
 def salvar_recorde(recorde):
@@ -226,8 +226,7 @@ class Dino:
         if not self.no_chao:
             return DINO_1
         if self.agachado:
-            return DINO_AGACHADO_1 if self.quadro == 0 else DINO_AGACHADO_2
-
+            return DINO_AGACHADO_1 if self.quadro == 0 else DINO_AGACHADO_2 
         return DINO_1 if self.quadro == 0 else DINO_2
 
     def caixa(self):
@@ -246,12 +245,12 @@ class Dino:
                 self.pes = float(CHAO_Y)
                 self.velocidade_y = 0
                 aterrissou = True
-            self.agachado = agachar and self.no_chao
-            self.animacao += dt
-            if self.animacao >= 0.12:
-                self.animacao %= 0.12
-                self.quadro = 1 - self.quadro
-            return aterrissou
+        self.agachado = agachar and self.no_chao
+        self.animacao += dt
+        if self.animacao >= 0.12:
+            self.animacao %= 0.12
+            self.quadro = 1 - self.quadro
+        return aterrissou
 
 
     def desenhar(self, tinta):
@@ -441,45 +440,45 @@ class Jogo:
             if self.tempo_meteoro <= 0:
                 self.meteoros.append(Meteoro())
                 self.tempo_meteoro = random.uniform(5,9)
-            for meteoro in self.meteoros:
-                meteoro.atualizar(dt)
-            self.meteoros = [m for m in self.meteoros if m.vida > 0]
+        for meteoro in self.meteoros:
+            meteoro.atualizar(dt)
+        self.meteoros = [m for m in self.meteoros if m.vida > 0]
 
-            if self.estado != "jogando":
-                return
+        if self.estado != "jogando":
+            return
 
-            self.pontos += dt * 12
-            self.velocidade = min(850, 390 + self.pontos * 0.19)
-            if int(self.pontos)>= self.proximo_marco:
-                self.proximo_marco += 100
-                self.sons.tocar("ponto")
+        self.pontos += dt * 12
+        self.velocidade = min(850, 390 + self.pontos * 0.19)
+        if int(self.pontos)>= self.proximo_marco:
+            self.proximo_marco += 100
+            self.sons.tocar("ponto")
 
-            teclas = pygame.key.get_pressed()
-            agachar = teclas[pygame.K_DOWN] or teclas[pygame.K_s]
-            if self.dino.atualizar(dt, agachar):
-                self.sons.tocar("pouso")
+        teclas = pygame.key.get_pressed()
+        agachar = teclas[pygame.K_DOWN] or teclas[pygame.K_s]
+        if self.dino.atualizar(dt, agachar):
+            self.sons.tocar("pouso")
             
-            self.deslocamento_chao = (self.deslocamento_chao + self.velocidade * dt) % 27
-            self.distancia_spawn -= self.velocidade * dt
-            if self.distancia_spawn <= 0:
-                self.gerar_obstaculo()
-            for obstaculo in self.obstaculos:
-                obstaculo.atualizar(self.velocidade,dt)
-                if self.dino.caixa().colliderect(obstaculo.caixa()):
-                    self.perder()
-                    break
+        self.deslocamento_chao = (self.deslocamento_chao + self.velocidade * dt) % 27
+        self.distancia_spawn -= self.velocidade * dt
+        if self.distancia_spawn <= 0:
+            self.gerar_obstaculo()
+        for obstaculo in self.obstaculos:
+            obstaculo.atualizar(self.velocidade,dt)
+            if self.dino.caixa().colliderect(obstaculo.caixa()):
+                self.perder()
+                break
             self.obstaculos = [o for o in self.obstaculos if o.x + o.largura > -20]
 
-            self.tempo_poeira += dt
+        self.tempo_poeira += dt
 
-            if self.dino.no_chao and self.tempo_poeira >= 0.10:
-                self.tempo_poeira = 0
-                self.poeira.append([self.dino.x + 3, CHAO_Y - 2, 0.28])
-            for p in self.poeira:
-                p[0] -= self.velocidade * dt * 0.45
-                p[2] -= dt
+        if self.dino.no_chao and self.tempo_poeira >= 0.10:
+            self.tempo_poeira = 0
+            self.poeira.append([self.dino.x + 3, CHAO_Y - 2, 0.28])
+        for p in self.poeira:
+            p[0] -= self.velocidade * dt * 0.45
+            p[2] -= dt
 
-            self.poeira = [p for p in self.poeira if p[2] > 0]
+        self.poeira = [p for p in self.poeira if p[2] > 0]
 
     def desenhar_ceu(self, fundo, tinta, noite):
         if noite > 0.05:
