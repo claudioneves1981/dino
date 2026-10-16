@@ -566,6 +566,7 @@ def main():
         jogo.desenhar()
     salvar_recorde(max(jogo.recorde, int(jogo.pontos)))
     pygame.quit()
+    ##
 
 if __name__ == "__main__":
     main()
